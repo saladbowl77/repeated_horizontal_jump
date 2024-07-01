@@ -65,13 +65,15 @@ while True:
   # 画面に反復横跳びの回数を表示
   font = cv2.FONT_HERSHEY_SIMPLEX
   text = f"count : {len(count)} / position : {nowPosition}"
-  text_size = cv2.getTextSize(text, font, 2, 3)[0]  # フォントサイズ: 2, 太さ:3
+  text_size = cv2.getTextSize(text, font, 4, 3)[0]  # フォントサイズ: 4, 太さ:3
   text_x = frame.shape[1] - text_size[0] - 10  # 右端から10ピクセル左
   text_y = text_size[1] + 10  # 上端から10ピクセル下
-  cv2.putText(frame, text, (text_x, text_y), font, 2, (0, 0, 0), 3, cv2.LINE_AA)  # フォントサイズ: 2, 太さ:3
+  cv2.putText(frame, text, (text_x, text_y), font, 4, (0, 0, 0), 3, cv2.LINE_AA)  # フォントサイズ: 4, 太さ:3
 
   
   # 映像の表示
+  cv2.namedWindow('MoveNet', cv2.WINDOW_NORMAL)
+  cv2.setWindowProperty('MoveNet', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
   cv2.imshow('MoveNet', frame)
 
   # 'r'キーでリセット, 'q'キーで終了

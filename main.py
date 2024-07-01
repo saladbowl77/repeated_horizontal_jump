@@ -1,12 +1,16 @@
 import cv2
 import numpy as np
 import mediapipe as mp
+import time
 
 mp_drawing = mp.solutions.drawing_utils
 mp_pose = mp.solutions.pose
 movenet = mp_pose.Pose(static_image_mode=False, model_complexity=1)
 
 cap = cv2.VideoCapture(1)
+
+beforePosition = ''
+count = []
 
 while True:
     # カメラからの映像を取得
@@ -35,17 +39,28 @@ while True:
 
           poses[3] += 1
             
+      # 現在の体の位置を判定
+      # 配列に入ったpositionのデータがどの場所に一番多いか判定する
       leftSide = poses[0] / poses[3]
       center = poses[1] / poses[3]
       rightSide = poses[2] / poses[3]
-      
       position = max(leftSide, center, rightSide)
+
+      # 現在のポジションを設定
+      nowPosition = ""
       if position == leftSide:
-        print("左側")
+        nowPosition = "L"
       elif position == center:
-        print("真ん中")
+        nowPosition = "C"
       else:
-        print("右側")
+        nowPosition = "R"
+
+      if nowPosition != beforePosition:
+        nowtime = int(time.time() * 1000)
+        count.append({"time" : nowtime, "pos": nowPosition})
+        beforePosition = nowPosition
+
+    print(len(count))
     
     # 映像の表示
     cv2.imshow('MoveNet', frame)

@@ -10,14 +10,25 @@ mp_drawing = mp.solutions.drawing_utils
 mp_pose = mp.solutions.pose
 movenet = mp_pose.Pose(static_image_mode=False, model_complexity=1)
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--ip", default="127.0.0.1",
+# 中央集権サーバー用のデータ転送
+parser1 = argparse.ArgumentParser()
+parser1.add_argument("--ip", default="192.168.50.152",
     help="The ip of the OSC server")
-parser.add_argument("--port", type=int, default=8080,
+parser1.add_argument("--port", type=int, default=8000,
     help="The port the OSC server is listening on")
-args = parser.parse_args()
+args1 = parser1.parse_args()
 
-client = udp_client.SimpleUDPClient(args.ip, args.port)
+clientServer = udp_client.SimpleUDPClient(args1.ip, args1.port)
+
+# 描画用のTouchDesigner
+parser2 = argparse.ArgumentParser()
+parser2.add_argument("--ip", default="127.0.0.1",
+    help="The ip of the OSC server")
+parser2.add_argument("--port", type=int, default=7000,
+    help="The port the OSC server is listening on")
+args2 = parser2.parse_args()
+
+clientTD = udp_client.SimpleUDPClient(args2.ip, args2.port)
 
 cap = cv2.VideoCapture(1)
 
@@ -52,12 +63,17 @@ while True:
     right_shoulder = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_SHOULDER]
     right_elbow = results.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_ELBOW]
 
-    # nowHandで送るのは左右が反転するので、プログラム上のleftとRightが逆になる
+    # 左手を挙げているか判定する
     if left_elbow.y < 0.7 and left_shoulder.y > left_elbow.y:
-      nowHand = "R"
+      nowHand = "L"
+      clientTD.send_message("/handState", 1)
     # 右腕が上げているかどうか判定
     elif right_elbow.y < 0.7 and right_shoulder.y > right_elbow.y:
-      nowHand = "L"
+      nowHand = "R"
+      clientTD.send_message("/handState", 2)
+    else:
+      clientTD.send_message("/handState", 0)
+
       
     for id, landmark in enumerate(results.pose_landmarks.landmark):
       # 各点の位置がどの場所にあるのか配列に追加し確認する
@@ -89,12 +105,15 @@ while True:
       nowtime = int(time.time() * 1000)
       count.append({"time" : nowtime, "pos": nowPosition})
       if nowHand == "L":
-        client.send_message("/increment", 0)
+        clientServer.send_message("/ctl3", 0)
       elif nowHand == "R":
-        client.send_message("/increment", 1)
+        clientServer.send_message("/ctl3", 1)
       else:
-        client.send_message("/increment", 2)
+        clientServer.send_message("/ctl3", 2)
+      clientTD.send_message("/countup", 1)
       beforePosition = nowPosition
+    else:
+      clientTD.send_message("/countup", 0)
 
   # 画面に反復横跳びの回数を表示
   font = cv2.FONT_HERSHEY_SIMPLEX
@@ -107,9 +126,10 @@ while True:
 
   
   # 映像の表示
-  # cv2.namedWindow('MoveNet', cv2.WINDOW_NORMAL)
-  # cv2.setWindowProperty('MoveNet', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+  cv2.namedWindow('MoveNet', cv2.WINDOW_NORMAL)
+  cv2.setWindowProperty('MoveNet', 1280, 720)
   cv2.imshow('MoveNet', frame)
+  cv2.moveWindow('MoveNet', 0, 0)
 
   # 'r'キーでリセット, 'q'キーで終了
   if cv2.waitKey(1) & 0xFF == ord('r'):

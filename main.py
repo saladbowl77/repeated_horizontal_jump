@@ -2,38 +2,30 @@ import cv2
 import numpy as np
 import mediapipe as mp
 import time
-
-import argparse
-from pythonosc import udp_client
+from lib import set_osc
 
 mp_drawing = mp.solutions.drawing_utils
 mp_pose = mp.solutions.pose
 movenet = mp_pose.Pose(static_image_mode=False, model_complexity=1)
 
-# 中央集権サーバー用のデータ転送
-parser1 = argparse.ArgumentParser()
-parser1.add_argument("--ip", default="192.168.50.152",
-    help="The ip of the OSC server")
-parser1.add_argument("--port", type=int, default=8000,
-    help="The port the OSC server is listening on")
-args1 = parser1.parse_args()
-
-clientServer = udp_client.SimpleUDPClient(args1.ip, args1.port)
-
-# 描画用のTouchDesigner
-parser2 = argparse.ArgumentParser()
-parser2.add_argument("--ip", default="127.0.0.1",
-    help="The ip of the OSC server")
-parser2.add_argument("--port", type=int, default=7000,
-    help="The port the OSC server is listening on")
-args2 = parser2.parse_args()
-
-clientTD = udp_client.SimpleUDPClient(args2.ip, args2.port)
-
-cap = cv2.VideoCapture(1)
-
+# デフォルト値の設定
 beforePosition = 'C'
 count = []
+
+class gameStatus:
+  menu = 0
+  start = 2
+
+class gameSettings:
+  status = 2
+
+def set_status(num):
+  print(gameSettings.status, num)
+  gameSettings.status = num
+
+clientServer, clientTD = set_osc(set_status)
+
+cap = cv2.VideoCapture(1)
 
 while True:
   # 各種変数のリセット
@@ -101,7 +93,8 @@ while True:
     else:
       nowPosition = "R"
 
-    if nowPosition != beforePosition:
+    # print(gameStatus.start == gameSettings.status, gameSettings.status)
+    if nowPosition != beforePosition and gameStatus.start == gameSettings.status:
       nowtime = int(time.time() * 1000)
       count.append({"time" : nowtime, "pos": nowPosition})
       if nowHand == "L":
@@ -117,7 +110,7 @@ while True:
 
   # 画面に反復横跳びの回数を表示
   font = cv2.FONT_HERSHEY_SIMPLEX
-  text = f"count : {len(count)} / position : {nowPosition}"
+  text = f"position : {nowPosition}"
   text_size = cv2.getTextSize(text, font, 4, 3)[0]  # フォントサイズ: 4, 太さ:3
   text_x = frame.shape[1] - text_size[0] - 10  # 右端から10ピクセル左
   text_y = text_size[1] + 10  # 上端から10ピクセル下
@@ -133,8 +126,7 @@ while True:
 
   # 'r'キーでリセット, 'q'キーで終了
   if cv2.waitKey(1) & 0xFF == ord('r'):
-    beforePosition = 'C'
-    count = []
+    reset_count()
 
   if cv2.waitKey(1) & 0xFF == ord('q'):
       break

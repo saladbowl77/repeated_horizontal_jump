@@ -126,7 +126,8 @@ while True:
 
   # 'r'キーでリセット, 'q'キーで終了
   if cv2.waitKey(1) & 0xFF == ord('r'):
-    reset_count()
+    beforePosition = 'C'
+    count = []
 
   if cv2.waitKey(1) & 0xFF == ord('q'):
       break

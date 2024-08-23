@@ -133,6 +133,3 @@ while True:
 
 cap.release()
 cv2.destroyAllWindows()
-
-
-# 送信するデータは反復横跳びでincrementされた時に、右か左かどっちの手を上げているのかというデータさえ送れば良い

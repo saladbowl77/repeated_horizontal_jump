@@ -12,20 +12,7 @@ movenet = mp_pose.Pose(static_image_mode=False, model_complexity=1)
 beforePosition = 'C'
 count = []
 
-class gameStatus:
-  menu = 0
-  start = 2
-
-class gameSettings:
-  status = 2
-
-def set_status(num):
-  print(gameSettings.status, num)
-  gameSettings.status = num
-
-clientServer, clientTD = set_osc(set_status)
-
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 
 while True:
   # 各種変数のリセット
@@ -93,8 +80,7 @@ while True:
     else:
       nowPosition = "R"
 
-    # print(gameStatus.start == gameSettings.status, gameSettings.status)
-    if nowPosition != beforePosition and gameStatus.start == gameSettings.status:
+    if nowPosition != beforePosition:
       nowtime = int(time.time() * 1000)
       count.append({"time" : nowtime, "pos": nowPosition})
       if nowHand == "L":

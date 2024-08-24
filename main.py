@@ -12,6 +12,7 @@ movenet = mp_pose.Pose(static_image_mode=False, model_complexity=1)
 beforePosition = 'C'
 count = []
 
+clientServer, clientTD = set_osc()
 cap = cv2.VideoCapture(0)
 
 while True:

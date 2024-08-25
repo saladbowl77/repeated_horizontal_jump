@@ -15,6 +15,12 @@ count = []
 clientServer, clientTD = set_osc()
 cap = cv2.VideoCapture(0)
 
+def send_osc(osc, addr, number):
+  try:
+    osc.send_message(addr, number)
+  except Exception as e:
+    print(f"通信エラーが発生しました : {e}")
+
 while True:
   # 各種変数のリセット
   nowPosition = ""
@@ -46,13 +52,13 @@ while True:
     # 左手を挙げているか判定する
     if left_elbow.y < 0.7 and left_shoulder.y > left_elbow.y:
       nowHand = "L"
-      clientTD.send_message("/handState", 1)
+      send_osc(clientTD, "/handState", 1)
     # 右腕が上げているかどうか判定
     elif right_elbow.y < 0.7 and right_shoulder.y > right_elbow.y:
       nowHand = "R"
-      clientTD.send_message("/handState", 2)
+      send_osc(clientTD, "/handState", 2)
     else:
-      clientTD.send_message("/handState", 0)
+      send_osc(clientTD, "/handState", 0)
 
       
     for id, landmark in enumerate(results.pose_landmarks.landmark):
@@ -85,15 +91,15 @@ while True:
       nowtime = int(time.time() * 1000)
       count.append({"time" : nowtime, "pos": nowPosition})
       if nowHand == "L":
-        clientServer.send_message("/ctl3", 0)
+        send_osc(clientServer, "/ctl3", 0)
       elif nowHand == "R":
-        clientServer.send_message("/ctl3", 1)
+        send_osc(clientServer, "/ctl3", 1)
       else:
-        clientServer.send_message("/ctl3", 2)
-      clientTD.send_message("/countup", 1)
+        send_osc(clientServer, "/ctl3", 2)
+      send_osc(clientTD, "/countup", 1)
       beforePosition = nowPosition
     else:
-      clientTD.send_message("/countup", 0)
+      send_osc(clientTD, "/countup", 0)
 
   # 画面に反復横跳びの回数を表示
   font = cv2.FONT_HERSHEY_SIMPLEX

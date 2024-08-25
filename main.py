@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import mediapipe as mp
 import time
-from lib import set_osc
+from lib import set_osc, send_osc
 
 mp_drawing = mp.solutions.drawing_utils
 mp_pose = mp.solutions.pose
@@ -10,7 +10,7 @@ movenet = mp_pose.Pose(static_image_mode=False, model_complexity=1)
 
 # デフォルト値の設定
 beforePosition = 'C'
-count = []
+count = 0
 
 clientServer, clientTD = set_osc()
 cap = cv2.VideoCapture(0)
@@ -46,13 +46,13 @@ while True:
     # 左手を挙げているか判定する
     if left_elbow.y < 0.7 and left_shoulder.y > left_elbow.y:
       nowHand = "L"
-      clientTD.send_message("/handState", 1)
+      send_osc(clientTD, "/handState", 1)
     # 右腕が上げているかどうか判定
     elif right_elbow.y < 0.7 and right_shoulder.y > right_elbow.y:
       nowHand = "R"
-      clientTD.send_message("/handState", 2)
+      send_osc(clientTD, "/handState", 2)
     else:
-      clientTD.send_message("/handState", 0)
+      send_osc(clientTD, "/handState", 0)
 
       
     for id, landmark in enumerate(results.pose_landmarks.landmark):
@@ -82,18 +82,17 @@ while True:
       nowPosition = "R"
 
     if nowPosition != beforePosition:
-      nowtime = int(time.time() * 1000)
-      count.append({"time" : nowtime, "pos": nowPosition})
+      count += 1
       if nowHand == "L":
-        clientServer.send_message("/ctl3", 0)
+        send_osc(clientServer, "/ctl3", 0)
       elif nowHand == "R":
-        clientServer.send_message("/ctl3", 1)
+        send_osc(clientServer, "/ctl3", 1)
       else:
-        clientServer.send_message("/ctl3", 2)
-      clientTD.send_message("/countup", 1)
+        send_osc(clientServer, "/ctl3", 2)
+      send_osc(clientTD, "/countup", 1)
       beforePosition = nowPosition
     else:
-      clientTD.send_message("/countup", 0)
+      send_osc(clientTD, "/countup", 0)
 
   # 画面に反復横跳びの回数を表示
   font = cv2.FONT_HERSHEY_SIMPLEX
@@ -108,13 +107,14 @@ while True:
   # 映像の表示
   cv2.namedWindow('MoveNet', cv2.WINDOW_NORMAL)
   cv2.setWindowProperty('MoveNet', 1280, 720)
+  cv2.resizeWindow('MoveNet', 800, 450)
   cv2.imshow('MoveNet', frame)
-  cv2.moveWindow('MoveNet', 0, 0)
+  cv2.moveWindow('MoveNet', 0, 640)
 
   # 'r'キーでリセット, 'q'キーで終了
   if cv2.waitKey(1) & 0xFF == ord('r'):
     beforePosition = 'C'
-    count = []
+    count = 0
 
   if cv2.waitKey(1) & 0xFF == ord('q'):
       break

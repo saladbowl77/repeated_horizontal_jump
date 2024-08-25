@@ -10,7 +10,7 @@ movenet = mp_pose.Pose(static_image_mode=False, model_complexity=1)
 
 # デフォルト値の設定
 beforePosition = 'C'
-count = []
+count = 0
 
 clientServer, clientTD = set_osc()
 cap = cv2.VideoCapture(0)
@@ -88,8 +88,7 @@ while True:
       nowPosition = "R"
 
     if nowPosition != beforePosition:
-      nowtime = int(time.time() * 1000)
-      count.append({"time" : nowtime, "pos": nowPosition})
+      count += 1
       if nowHand == "L":
         send_osc(clientServer, "/ctl3", 0)
       elif nowHand == "R":
@@ -120,7 +119,7 @@ while True:
   # 'r'キーでリセット, 'q'キーで終了
   if cv2.waitKey(1) & 0xFF == ord('r'):
     beforePosition = 'C'
-    count = []
+    count = 0
 
   if cv2.waitKey(1) & 0xFF == ord('q'):
       break

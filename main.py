@@ -115,7 +115,7 @@ while True:
   cv2.namedWindow('MoveNet', cv2.WINDOW_NORMAL)
   cv2.setWindowProperty('MoveNet', 1280, 720)
   cv2.imshow('MoveNet', frame)
-  cv2.moveWindow('MoveNet', 0, 0)
+  cv2.moveWindow('MoveNet', 0, 600)
 
   # 'r'キーでリセット, 'q'キーで終了
   if cv2.waitKey(1) & 0xFF == ord('r'):

@@ -9,3 +9,9 @@ def set_osc():
   clientTD = udp_client.SimpleUDPClient("127.0.0.1", 7000)
 
   return clientServer, clientTD
+
+def send_osc(osc, addr, number):
+  try:
+    osc.send_message(addr, number)
+  except Exception as e:
+    print(f"通信エラーが発生しました : {e}")

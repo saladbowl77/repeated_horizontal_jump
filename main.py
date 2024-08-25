@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import mediapipe as mp
 import time
-from lib import set_osc
+from lib import set_osc, send_osc
 
 mp_drawing = mp.solutions.drawing_utils
 mp_pose = mp.solutions.pose
@@ -14,12 +14,6 @@ count = 0
 
 clientServer, clientTD = set_osc()
 cap = cv2.VideoCapture(0)
-
-def send_osc(osc, addr, number):
-  try:
-    osc.send_message(addr, number)
-  except Exception as e:
-    print(f"通信エラーが発生しました : {e}")
 
 while True:
   # 各種変数のリセット
